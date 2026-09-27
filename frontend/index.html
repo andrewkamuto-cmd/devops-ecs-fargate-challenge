@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Andrews Guest Flow</title>
+    <meta charset="UTF-8">
+</head>
+
+<body>
+
+<h1>Andrews Guest Flow Platform</h1>
+
+<p>AWS DevOps ECS Fargate Challenge</p>
+
+<h2>Join Waitlist</h2>
+
+<form id="waitlistForm">
+
+    <label>
+        Guest Name
+        <input id="guestName" required>
+    </label>
+
+    <br><br>
+
+    <label>
+        Party Size
+        <input
+            id="partySize"
+            type="number"
+            min="1"
+            required
+        >
+    </label>
+
+    <br><br>
+
+    <button type="submit">
+        Add Guest
+    </button>
+
+</form>
+
+<h2>Current Waitlist</h2>
+
+<button onclick="loadWaitlist()">
+    Refresh
+</button>
+
+<ul id="waitlist"></ul>
+
+<script>
+
+async function loadWaitlist() {
+
+    const response = await fetch("/api/waitlist");
+
+    const guests = await response.json();
+
+    const list = document.getElementById("waitlist");
+
+    list.innerHTML = "";
+
+    guests.forEach(guest => {
+
+        const item = document.createElement("li");
+
+        item.textContent =
+            `${guest.guestName} - Party of ${guest.partySize}`;
+
+        list.appendChild(item);
+
+    });
+
+}
+
+document
+    .getElementById("waitlistForm")
+    .addEventListener("submit", async event => {
+
+        event.preventDefault();
+
+        const guestName =
+            document.getElementById("guestName").value;
+
+        const partySize =
+            Number(
+                document.getElementById("partySize").value
+            );
+
+        await fetch("/api/waitlist", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                guestName,
+                partySize
+            })
+
+        });
+
+        document.getElementById("guestName").value = "";
+
+        await loadWaitlist();
+
+    });
+
+loadWaitlist();
+
+</script>
+
+</body>
+</html>
