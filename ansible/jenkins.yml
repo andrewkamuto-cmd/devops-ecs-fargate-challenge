@@ -1,0 +1,72 @@
+---
+- name: Configure Jenkins server
+  hosts: jenkins
+  become: true
+
+  tasks:
+
+    - name: Install system packages
+      ansible.builtin.dnf:
+        name:
+          - java-21-amazon-corretto-headless
+          - docker
+          - git
+          - unzip
+        state: present
+
+    - name: Add Jenkins repository
+      ansible.builtin.get_url:
+        url: https://pkg.jenkins.io/rpm-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+        mode: "0644"
+
+    - name: Import Jenkins signing key
+      ansible.builtin.rpm_key:
+        key: https://pkg.jenkins.io/rpm-stable/jenkins.io-2026.key
+        state: present
+
+    - name: Install Jenkins
+      ansible.builtin.dnf:
+        name: jenkins
+        state: present
+
+    - name: Download AWS CLI
+      ansible.builtin.get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+        mode: "0644"
+
+    - name: Extract AWS CLI
+      ansible.builtin.unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: true
+
+    - name: Install AWS CLI
+      ansible.builtin.command:
+        cmd: /tmp/aws/install --update
+      changed_when: true
+
+    - name: Start Docker
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add Jenkins user to Docker group
+      ansible.builtin.user:
+        name: jenkins
+        groups: docker
+        append: true
+
+    - name: Add EC2 user to Docker group
+      ansible.builtin.user:
+        name: ec2-user
+        groups: docker
+        append: true
+
+    - name: Start Jenkins
+      ansible.builtin.systemd:
+        name: jenkins
+        enabled: true
+        state: restarted
