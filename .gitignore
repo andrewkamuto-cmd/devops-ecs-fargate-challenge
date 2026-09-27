@@ -1,0 +1,25 @@
+# Node
+node_modules/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+.terraform.tfstate.lock.info
+crash.log
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Ansible
+ansible/inventory.ini
+
+# Operating system
+.DS_Store
+
+# VS Code
+.vscode/
